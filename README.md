@@ -9,3 +9,4 @@ run with the following command:
 dependencies:
     - clingraph
     - clingo api
+
