@@ -1,5 +1,6 @@
 import os, subprocess
-
+from pydoc import cli
+from itertools import product, groupby
 
 class AbstractedMap():
     def __init__(self):
@@ -89,7 +90,7 @@ class AbstractedMap():
 
         # create for every clique an node
         for clique in self.cliques:
-            clique_id = nodes[str(clique[0])]["clique_id"]
+            clique_id = nodes[str(next(iter(clique)))]["clique_id"]
             abstraction.nodes.append({
                 "id": clique_id
             })
@@ -106,20 +107,10 @@ class AbstractedMap():
         return abstraction
 
     def load_abstraction_finished(self):
+        cliques = []
         for symbol in self.latest_model:
             if(str(symbol).startswith("in_clique_with")):
-                node_to_check = str(symbol.arguments[0])
-                node_to_be_in_clique = str(symbol.arguments[1])
-
-                found_clique = False
-                for clique in self.cliques:
-                    if node_to_be_in_clique in clique:
-                        if node_to_check not in clique:
-                            clique.append(node_to_check)
-                        found_clique = True
-                
-                if(not found_clique):
-                    self.cliques.append([node_to_check, node_to_be_in_clique])
+                cliques.append({str(symbol.arguments[0]), str(symbol.arguments[1])})
 
             if(str(symbol).startswith("loner(")):
                 self.loners.append(str(symbol.arguments[0]))
@@ -131,3 +122,16 @@ class AbstractedMap():
                     self.loner_connections[loner].append(connected_with)
                 else:
                     self.loner_connections[loner] = [connected_with]
+
+        # Merge all cliques containing common elements
+        #cartesian product merging elements if some element in common
+        for a,b in product(cliques,cliques):
+            if a.intersection(b):
+                a.update(b)
+                b.update(a)
+
+        #back to list of lists
+        cliques = sorted( [sorted(list(x)) for x in cliques])
+
+        #remove dups
+        self.cliques = list(l for l,_ in groupby(cliques))
