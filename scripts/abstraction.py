@@ -1,4 +1,5 @@
-import clingo, os, subprocess, sys
+import string
+import clingo, os, subprocess, argparse
 
 from numpy import full
 from map import AbstractedMap
@@ -23,15 +24,29 @@ def vizualize_maps(*maps):
     
     output = subprocess.run(["clingraph", "out/to_viz", "encodings/viz.lp", "--engine=neato", "--format=pdf"])
 
-def run(instance):
+def save_to_file(m, file):
+    if (os.path.exists(file)):
+        os.remove(file)
+
+    with open(file, 'w') as f:
+        for atom in m.symbols(shown=True):
+            f.write(f"{atom}.")
+
+def run(args):
     full_map = AbstractedMap()
 
     # Load instance and translate input
     ctl = clingo.Control()
-    ctl.load(instance)
+    ctl.load(args.instance)
     ctl.load("encodings/input.lp")
     ctl.ground([("base", [])])
     ctl.solve(on_model= lambda m: full_map.on_model_load_input(m))
+
+    if(args.debug):
+        ctl = clingo.Control()
+        full_map.load_in_clingo(ctl)
+        ctl.ground([("base", [])])
+        ctl.solve(on_model= lambda m: save_to_file(m, f"out/map_{full_map.layer}.lp"))
 
     # Find cliques in the first abstraction graph
     ctl = clingo.Control()
@@ -74,7 +89,11 @@ def run(instance):
     vizualize_maps(full_map, abstraction, abstraction2, abstraction3)
 
 
-if(len(sys.argv) < 2):
-    print("abstraction.py [instance]")
+parser = argparse.ArgumentParser()
 
-run(sys.argv[1])
+parser.add_argument("-i", "--instance", help="Instance to do the abstractions for")
+parser.add_argument("-d", "--debug", help="If each map's clingo representation is saved to a file", action='store_true')
+
+args = parser.parse_args()
+
+run(args)
