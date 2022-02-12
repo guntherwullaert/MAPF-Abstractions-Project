@@ -1,4 +1,4 @@
-import clingo, os, subprocess
+import clingo, os, subprocess, sys
 
 from numpy import full
 from map import AbstractedMap
@@ -23,12 +23,12 @@ def vizualize_maps(*maps):
     
     output = subprocess.run(["clingraph", "out/to_viz", "encodings/viz.lp", "--engine=neato", "--format=pdf"])
 
-def run():
+def run(instance):
     full_map = AbstractedMap()
 
     # Load instance and translate input
     ctl = clingo.Control()
-    ctl.load("instances/corridor_instance.lp") # TODO: Als parameter übertragen
+    ctl.load(instance)
     ctl.load("encodings/input.lp")
     ctl.ground([("base", [])])
     ctl.solve(on_model= lambda m: full_map.on_model_load_input(m))
@@ -73,4 +73,8 @@ def run():
     
     vizualize_maps(full_map, abstraction, abstraction2, abstraction3)
 
-run()
+
+if(len(sys.argv) < 2):
+    print("abstraction.py [instance]")
+
+run(sys.argv[1])
