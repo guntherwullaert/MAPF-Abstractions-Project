@@ -40,6 +40,9 @@ def abstract(args, map):
     ctl.solve(on_model= lambda m: map.on_model_load_abstraction(m))
     map.load_abstraction_finished()
 
+    if(args.cliques):
+        print(f"Cliques[{map.layer}]: ", map.cliques)
+
     abstraction = map.create_abstraction()
 
     if(args.debug):
@@ -81,6 +84,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-i", "--instance", help="Instance to do the abstractions for")
 parser.add_argument("-d", "--debug", help="If each map's clingo representation is saved to a file", action='store_true')
 parser.add_argument("-a", "--abstractions", help="How many abstractions should be created", type=int)
+parser.add_argument("-c", "--cliques", help="If the exact cliques should be printed", action='store_true')
 
 args = parser.parse_args()
 
