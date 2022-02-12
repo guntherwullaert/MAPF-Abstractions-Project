@@ -32,6 +32,24 @@ def save_to_file(m, file):
         for atom in m.symbols(shown=True):
             f.write(f"{atom}.")
 
+def abstract(args, map):
+    ctl = clingo.Control()
+    ctl.load("encodings/find-cliques.lp")
+    map.load_in_clingo(ctl)
+    ctl.ground([("base", [])])
+    ctl.solve(on_model= lambda m: map.on_model_load_abstraction(m))
+    map.load_abstraction_finished()
+
+    abstraction = map.create_abstraction()
+
+    if(args.debug):
+        ctl = clingo.Control()
+        map.load_in_clingo(ctl)
+        ctl.ground([("base", [])])
+        ctl.solve(on_model= lambda m: save_to_file(m, f"out/map_{abstraction.layer}.lp"))
+
+    return abstraction
+
 def run(args):
     full_map = AbstractedMap()
 
@@ -49,50 +67,20 @@ def run(args):
         ctl.solve(on_model= lambda m: save_to_file(m, f"out/map_{full_map.layer}.lp"))
 
     # Find cliques in the first abstraction graph
-    ctl = clingo.Control()
-    ctl.load("encodings/find-cliques.lp")
-    full_map.load_in_clingo(ctl)
-    ctl.ground([("base", [])])
-    ctl.solve(on_model= lambda m: full_map.on_model_load_abstraction(m))
-    full_map.load_abstraction_finished()
-    #print(ctl.configuration.solve.keys)
-    #print(ctl.configuration.solve.__desc_solve_limit)
-
-    print(full_map.cliques)
-    print(full_map.loners)
-    print(full_map.loner_connections)
-    #full_map.vizualize()
-
-    abstraction = full_map.create_abstraction()
-    #abstraction.vizualize()
+    map = full_map
+    maps = [full_map]
+    for i in range(args.abstractions):
+        map = abstract(args, map)
+        maps.append(map)
     
-    # Find cliques in the second abstraction graph
-    ctl = clingo.Control()
-    ctl.load("encodings/find-cliques.lp")
-    abstraction.load_in_clingo(ctl)
-    ctl.ground([("base", [])])
-    ctl.solve(on_model= lambda m: abstraction.on_model_load_abstraction(m))
-    abstraction.load_abstraction_finished()
-
-    abstraction2 = abstraction.create_abstraction()
-
-    # Find cliques in the second abstraction graph
-    ctl = clingo.Control()
-    ctl.load("encodings/find-cliques.lp")
-    abstraction2.load_in_clingo(ctl)
-    ctl.ground([("base", [])])
-    ctl.solve(on_model= lambda m: abstraction2.on_model_load_abstraction(m))
-    abstraction2.load_abstraction_finished()
-
-    abstraction3 = abstraction2.create_abstraction()
-    
-    vizualize_maps(full_map, abstraction, abstraction2, abstraction3)
+    vizualize_maps(*maps)
 
 
 parser = argparse.ArgumentParser()
 
 parser.add_argument("-i", "--instance", help="Instance to do the abstractions for")
 parser.add_argument("-d", "--debug", help="If each map's clingo representation is saved to a file", action='store_true')
+parser.add_argument("-a", "--abstractions", help="How many abstractions should be created", type=int)
 
 args = parser.parse_args()
 
