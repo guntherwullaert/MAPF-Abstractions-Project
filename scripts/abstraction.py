@@ -22,7 +22,8 @@ def vizualize_maps(*maps):
                 clique_definition = clique_definition[:-1] + ")."
                 f.write(clique_definition)
     
-    output = subprocess.run(["clingraph", "out/to_viz", "encodings/viz.lp", "--engine=neato", "--format=pdf"])
+    clin_out = subprocess.Popen(['clingo', 'out/to_viz', 'encodings/viz.lp', '-n', '0', '--outf=2'], stdout=subprocess.PIPE)
+    output = subprocess.run(["clingraph", "--json", "--render", "--engine=neato", "--format=pdf"], stdin=clin_out.stdout)
 
 def save_to_file(m, file):
     if (os.path.exists(file)):
