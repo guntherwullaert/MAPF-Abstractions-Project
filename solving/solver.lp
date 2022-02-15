@@ -15,7 +15,7 @@ path(ID, 0, V) :- start((ID, V)).
 :- goal((ID, V)), not visit(ID, V).
 visit(ID, V) :- path(ID, T, V).
 
-% Stay at gtarget
+% Stay at target
 :- goal((ID, V)), path(ID, T, V2), plan_length(ID, MIN), T > MIN, V != V2.
 
 % No steps after all agents have reached their target
@@ -25,18 +25,17 @@ visit(ID, V) :- path(ID, T, V).
 %Detecting Conflicts%
 %%%%%%%%%%%%%%%%%%%%%
 
-% No vertex conflicts.
-%path(ID0, T+1, V) :- path(ID, T, V), path(ID0, T, V), ID < ID0, start((ID,V)), start((ID0, V)).
-%start_conflict(ID, ID0, V) :- start((ID,V)), start((ID0, V)), ID < ID0.
-%goal_conflict(ID, ID0, V) :- goal((ID,V)), goal((ID0, V)), ID < ID0.
-%:- path(ID, T, V), path(ID0, T, V), ID < ID0, not start_conflict(ID,ID0,V), not goal_conflict(ID, ID0, V).
+% No vertex conflicts (ID: 0).
+%conflict(0, ID, ID0, T, V) :- path(ID, T, V), path(ID0, T, V), ID < ID0.
  :- path(ID, T, V), path(ID0, T, V), ID < ID0.
 
-% No swapping conflicts.
+% No swapping(edge) conflicts (ID: 1).
+%conflict(1, ID, ID0, T, (V, W)) :- path(ID, T, V), path(ID, T + 1, W), path(ID0, T, W), path(ID0, T + 1, V), ID < ID0.
 :- path(ID, T, V), path(ID, T + 1, W), path(ID0, T, W), path(ID0, T + 1, V), ID < ID0.
 
-% No crossing conflicts.
-:- path(ID, T, V), path(ID, T + 1, W), path(ID2, T, V2), path(ID2, T + 1, W2), is_crossing((V,W),(V2,W2)).
+% No crossing conflicts (ID: 2, possibly only on abstraction 0).
+%conflict(2, ID, ID0, T, ((V,W),(V2,W2))) :- path(ID, T, V), path(ID, T + 1, W), path(ID0, T, V2), path(ID0, T + 1, W2), is_crossing((V,W),(V2,W2)).
+:- path(ID, T, V), path(ID, T + 1, W), path(ID0, T, V2), path(ID0, T + 1, W2), is_crossing((V,W),(V2,W2)).
 
 %%%%%%%%%%%%%%
 %Optimization%
@@ -61,12 +60,13 @@ sum_of_costs(SOC) :- SOC = #sum { T,ID : plan_length(ID, T), robot(ID)}.
 %Output%
 %%%%%%%%
 
+% Output transformation for asprilo-visualizer
+occurs(object(robot, ID), action(move, (X2-X, Y2-Y)), T) :- path(ID, T+1, V2), node(V2, X2, Y2), path(ID, T, V), node(V, X, Y).
+#show.
+#show occurs/3.
+
 %#show path/3.
 %#show makespan/1.
 %#show sum_of_costs/1.
 
-
-% Output transformation for asprilo-visualizer
-occurs(object(robot, ID), action(move, (X2-X, Y2-Y)), T) :- path(ID, T+1, V2), node(V2, X2, Y2), path(ID, T, V), node(V, X, Y).%, makespan(M), T < M.
-#show.
-#show occurs/3.
+%#show conflict/5.
