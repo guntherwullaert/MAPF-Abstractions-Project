@@ -77,15 +77,17 @@ def run(args):
         map = abstract(args, map)
         maps.append(map)
     
-    vizualize_maps(*maps)
+    if(args.vizualize):
+        vizualize_maps(*maps)
 
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("-i", "--instance", help="Instance to do the abstractions for")
+parser.add_argument("-i", "--instance", help="Instance to do the abstractions for", required=True)
 parser.add_argument("-d", "--debug", help="If each map's clingo representation is saved to a file", action='store_true')
-parser.add_argument("-a", "--abstractions", help="How many abstractions should be created", type=int)
+parser.add_argument("-a", "--abstractions", help="How many abstractions should be created", type=int, required=True)
 parser.add_argument("-c", "--cliques", help="If the exact cliques should be printed", action='store_true')
+parser.add_argument("-v", "--vizualize", help="If the graphs should be vizualized", action='store_true')
 
 args = parser.parse_args()
 
