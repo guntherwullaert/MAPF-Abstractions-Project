@@ -60,7 +60,7 @@ class AbstractedMap():
             if(str(symbol).startswith("robot_at")):
                 self.robots.append({
                     "id": str(symbol.arguments[0]),
-                    "node_id": str(symbol.arguments[0])
+                    "node_id": str(symbol.arguments[1])
                 })
             if(str(symbol).startswith("goal")):
                 self.goals.append(str(symbol.arguments[0]))
@@ -118,6 +118,16 @@ class AbstractedMap():
                             "id": clique_id, 
                             "id2": nodes[edge["id2"]]["clique_id"]
                         })
+
+        # Transfer goals and robots to the new abstraction
+        for robot in self.robots:
+            abstraction.robots.append({
+                "id": robot["id"],
+                "node_id": nodes[robot["node_id"]]["clique_id"]
+            })
+
+        for goal in self.goals:
+            abstraction.goals.append(nodes[goal]["clique_id"])
 
         return abstraction
 

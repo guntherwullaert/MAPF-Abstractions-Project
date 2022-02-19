@@ -7,13 +7,23 @@ from map import AbstractedMap
 def vizualize_maps(*maps):
     if (os.path.exists("out/to_viz")):
         os.remove("out/to_viz")
-    with open('out/to_viz', 'w') as f:
+    with open('out/to_viz', 'w') as f:        
         for map in maps:
+            robots_connected_to_node = {}
+
             f.write(f"graph(abstraction_{map.layer}).")
             for node in map.nodes:
                 f.write(f"node(a{map.layer}n{node['id']}, abstraction_{map.layer}).")
             for edge in map.edges:
                 f.write(f"edge((a{map.layer}n{edge['id']}, a{map.layer}n{edge['id2']}), abstraction_{map.layer}).")
+            for robot in map.robots:
+                #f.write(f"robot({robot['id']}, a{map.layer}n{robot['node_id']}, abstraction_{map.layer}).")
+                if robot["node_id"] in robots_connected_to_node.keys():
+                    robots_connected_to_node[robot["node_id"]].append(robot["id"])
+                else:
+                   robots_connected_to_node[robot["node_id"]] = [robot["id"]]
+            for goal in map.goals:
+                f.write(f"goal(a{map.layer}n{goal}, abstraction_{map.layer}).")
             for clique in map.cliques:
                 clique_definition = "clique("
                 for atom in clique:
@@ -22,6 +32,16 @@ def vizualize_maps(*maps):
                 clique_definition = clique_definition[:-1] + ")."
                 f.write(clique_definition)
     
+
+            for node in map.nodes:
+                label = node['id']
+                if node['id'] in robots_connected_to_node.keys():
+                    robot_string = ""
+                    for r in robots_connected_to_node[node['id']]:
+                        robot_string += "R" + r + " "
+                    label = label + " - " + robot_string
+                f.write(f"attr(node, a{map.layer}n{node['id']}, label, \"{label}\").")
+
     clin_out = subprocess.Popen(['clingo', 'out/to_viz', 'encodings/viz.lp', '-n', '0', '--outf=2'], stdout=subprocess.PIPE)
     output = subprocess.run(["clingraph", "--json", "--render", "--engine=neato", "--format=pdf"], stdin=clin_out.stdout)
 
