@@ -7,6 +7,8 @@ class AbstractedMap():
         self.layer = 0
         self.nodes = []
         self.edges = []
+        self.robots = []
+        self.goals = []
         self.cliques = []
         self.loners = []
         self.loner_connections = {}
@@ -18,6 +20,12 @@ class AbstractedMap():
             ctl.add("base", [],  f"node({node['id']}).")
         for edge in self.edges:
             ctl.add("base", [], f"edge(({edge['id']}, {edge['id2']})).")
+        for robot in self.robots:
+            ctl.add("base", [], f"robot_at({robot['id']}, {robot['node_id']}).")
+        for goal in self.goals:
+            ctl.add("base", [], f"goal({goal}).")
+
+        ctl.add("base", [], f"robot(ID) :- robot_at(ID, _).")
 
     def vizualize(self):
         if (os.path.exists("out/to_viz")):
@@ -49,6 +57,13 @@ class AbstractedMap():
                     "id": str(symbol.arguments[0].arguments[0]),
                     "id2": str(symbol.arguments[0].arguments[1])
                 })
+            if(str(symbol).startswith("robot_at")):
+                self.robots.append({
+                    "id": str(symbol.arguments[0]),
+                    "node_id": str(symbol.arguments[0])
+                })
+            if(str(symbol).startswith("goal")):
+                self.goals.append(str(symbol.arguments[0]))
     
     def on_model_load_abstraction(self, m):
         self.latest_model = m.symbols(shown=True)
