@@ -23,7 +23,7 @@ def vizualize_maps(*maps):
                 else:
                    robots_connected_to_node[robot["node_id"]] = [robot["id"]]
             for goal in map.goals:
-                f.write(f"goal(a{map.layer}n{goal}, abstraction_{map.layer}).")
+                f.write(f"goal(a{map.layer}n{goal['node_id']}, abstraction_{map.layer}).")
             for clique in map.cliques:
                 clique_definition = "clique("
                 for atom in clique:

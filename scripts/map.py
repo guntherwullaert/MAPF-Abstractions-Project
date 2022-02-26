@@ -23,7 +23,7 @@ class AbstractedMap():
         for robot in self.robots:
             ctl.add("base", [], f"robot_at({robot['id']}, {robot['node_id']}).")
         for goal in self.goals:
-            ctl.add("base", [], f"goal({goal}).")
+            ctl.add("base", [], f"goal({goal['node_id']}, {goal['count']}).")
 
         ctl.add("base", [], f"robot(ID) :- robot_at(ID, _).")
 
@@ -63,7 +63,10 @@ class AbstractedMap():
                     "node_id": str(symbol.arguments[1])
                 })
             if(str(symbol).startswith("goal")):
-                self.goals.append(str(symbol.arguments[0]))
+                self.goals.append({
+                    'node_id': str(symbol.arguments[0]),
+                    'count': int(str(symbol.arguments[1]))
+                })
     
     def on_model_load_abstraction(self, m):
         self.latest_model = m.symbols(shown=True)
@@ -126,8 +129,18 @@ class AbstractedMap():
                 "node_id": nodes[robot["node_id"]]["clique_id"]
             })
 
+        new_goals = {}
         for goal in self.goals:
-            abstraction.goals.append(nodes[goal]["clique_id"])
+            clique_id = nodes[goal["node_id"]]["clique_id"]
+            if(clique_id in new_goals.keys()):
+                new_goals[clique_id] += goal["count"]
+            else:
+                new_goals[clique_id] = goal["count"]
+        for node, count in new_goals.items():
+            abstraction.goals.append({
+                "node_id": node,
+                "count": count
+            })
 
         return abstraction
 

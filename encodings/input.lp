@@ -14,11 +14,11 @@ robot(R) :- robot_at(R, _).
 robot_at(R, ID) :- node(ID,X,Y), init(object(robot,R), value(at,(X,Y))).
 
 % goal definition
-goal(ID) :- node(ID,X,Y), init(object(shelf,_),value(at,(X,Y))).
+goal(ID, 1) :- node(ID,X,Y), init(object(shelf,_),value(at,(X,Y))).
 
 #show.
 #show node/1.
 #show edge/1.
 #show robot/1.
 #show robot_at/2.
-#show goal/1.
+#show goal/2.
