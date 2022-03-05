@@ -2,6 +2,8 @@ node(ID,X,Y) :- init(object(node,ID),value(at,(X,Y))).
 
 node(ID) :- node(ID,_,_).
 
+count_of_node(ID, 1) :- node(ID).
+
 edge((ID, ID2)) :- node(ID, X, Y), node(ID2, X+1, Y).
 edge((ID, ID2)) :- node(ID, X, Y), node(ID2, X, Y+1).
 edge((ID, ID2)) :- node(ID, X, Y), node(ID2, X+1, Y+1).
@@ -18,6 +20,7 @@ goal(ID, 1) :- node(ID,X,Y), init(object(shelf,_),value(at,(X,Y))).
 
 #show.
 #show node/1.
+#show count_of_node/2.
 #show edge/1.
 #show robot/1.
 #show robot_at/2.

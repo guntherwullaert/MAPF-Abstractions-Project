@@ -9,41 +9,20 @@ def vizualize_maps(*maps):
         os.remove("out/to_viz")
     with open('out/to_viz', 'w') as f:        
         for map in maps:
-            robots_connected_to_node = {}
-
-            f.write(f"graph(abstraction_{map.layer}).")
-            for node in map.nodes:
-                f.write(f"node(a{map.layer}n{node['id']}, abstraction_{map.layer}).")
-            for edge in map.edges:
-                f.write(f"edge((a{map.layer}n{edge['id']}, a{map.layer}n{edge['id2']}), abstraction_{map.layer}).")
-            for robot in map.robots:
-                #f.write(f"robot({robot['id']}, a{map.layer}n{robot['node_id']}, abstraction_{map.layer}).")
-                if robot["node_id"] in robots_connected_to_node.keys():
-                    robots_connected_to_node[robot["node_id"]].append(robot["id"])
-                else:
-                   robots_connected_to_node[robot["node_id"]] = [robot["id"]]
-            for goal in map.goals:
-                f.write(f"goal(a{map.layer}n{goal['node_id']}, abstraction_{map.layer}).")
-            for clique in map.cliques:
-                clique_definition = "clique("
-                for atom in clique:
-                    clique_definition += str(atom) + ","
-                    f.write(f"clique_count_node_is_in(a{map.layer}n{atom}, {len(clique)}, abstraction_{map.layer}).")
-                clique_definition = clique_definition[:-1] + ")."
-                f.write(clique_definition)
-    
-
-            for node in map.nodes:
-                label = node['id']
-                if node['id'] in robots_connected_to_node.keys():
-                    robot_string = ""
-                    for r in robots_connected_to_node[node['id']]:
-                        robot_string += "R" + r + " "
-                    label = label + " - " + robot_string
-                f.write(f"attr(node, a{map.layer}n{node['id']}, label, \"{label}\").")
+            map.vizualize(f)
 
     clin_out = subprocess.Popen(['clingo', 'out/to_viz', 'encodings/viz.lp', '-n', '0', '--outf=2'], stdout=subprocess.PIPE)
-    output = subprocess.run(["clingraph", "--json", "--render", "--engine=neato", "--format=pdf"], stdin=clin_out.stdout)
+    output = subprocess.run(["clingraph", "--json", "--render", "--engine=neato", "--format=pdf", "-q"], stdin=clin_out.stdout)
+
+def vizualize_solution_for_map(map):
+    if (os.path.exists("out/to_viz")):
+        os.remove("out/to_viz")
+    with open('out/to_viz', 'w') as f:        
+        map.vizualize_solution_for_map(f)
+
+    clin_out = subprocess.Popen(['clingo', 'out/to_viz', 'encodings/viz.lp', '-n', '0', '--outf=2'], stdout=subprocess.PIPE)
+    output = subprocess.run(["clingraph", "--json", "--render", "--engine=neato", "--format=pdf", "--gif", "--gif-name=path_animation.gif", "-q", "--select-model=1"], stdin=clin_out.stdout)
+
 
 def save_to_file(m, file):
     if (os.path.exists(file)):
@@ -68,7 +47,7 @@ def abstract(args, map):
 
     if(args.debug):
         ctl = clingo.Control()
-        map.load_in_clingo(ctl)
+        abstraction.load_in_clingo(ctl)
         ctl.ground([("base", [])])
         ctl.solve(on_model= lambda m: save_to_file(m, f"out/map_{abstraction.layer}.lp"))
 
@@ -96,9 +75,13 @@ def run(args):
     for i in range(args.abstractions):
         map = abstract(args, map)
         maps.append(map)
-    
-    if(args.vizualize):
-        vizualize_maps(*maps)
+
+    maps[-1].solve()
+    maps[-2].solve(maps[-1].paths)
+    vizualize_solution_for_map(maps[-2])
+
+    #if(args.vizualize):
+    #    vizualize_maps(*maps)
 
 
 parser = argparse.ArgumentParser()
