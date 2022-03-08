@@ -9,6 +9,7 @@ class AbstractedMap():
         self.layer = 0
         self.nodes = []
         self.node_count = {}
+        self.node_coord = {}
         self.edges = []
         self.robots = []
         self.goals = []
@@ -23,6 +24,8 @@ class AbstractedMap():
     def load_in_clingo(self, ctl, paths = {}):
         for node in self.nodes:
             ctl.add("base", [],  f"node({node['id']}).")
+        for node_id, coord in self.node_coord.items():
+            ctl.add("base", [],  f"coord_of_node({node_id}, {coord[0]}, {coord[1]}).")
         for edge in self.edges:
             ctl.add("base", [], f"edge(({edge['id']}, {edge['id2']})).")
             
@@ -100,6 +103,9 @@ class AbstractedMap():
 
             f.write(f"attr(node, a{self.layer}n{node['id']}s{timestep_append}, label, \"{label}\").")
 
+        for node_id, coord in self.node_coord.items():
+            f.write(f"attr(node, a{self.layer}n{node_id}s{timestep_append}, pos, \"{coord[0]},{coord[1]}!\").")
+
     def vizualize_solution_for_map(self, f, horizon):
         for step in range(horizon):
             self.vizualize(f, step)
@@ -112,6 +118,8 @@ class AbstractedMap():
                 })
             elif(str(symbol).startswith("count_of_node")):
                 self.node_count[str(symbol.arguments[0])] = str(symbol.arguments[1])
+            elif(str(symbol).startswith("coord_of_node")):
+                self.node_coord[str(symbol.arguments[0])] = [str(symbol.arguments[1]), str(symbol.arguments[2])]
             elif(str(symbol).startswith("edge")):
                 self.edges.append({
                     "id": str(symbol.arguments[0].arguments[0]),
@@ -190,6 +198,7 @@ class AbstractedMap():
             abstraction.nodes.append({
                 "id": clique_id
             })
+            abstraction.node_coord[clique_id] = self.node_coord[str(next(iter(clique)))]
 
             # create edges between new nodes
             for node in clique:
