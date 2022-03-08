@@ -14,11 +14,11 @@ def vizualize_maps(*maps):
     clin_out = subprocess.Popen(['clingo', 'out/to_viz', 'encodings/viz.lp', '-n', '0', '--outf=2'], stdout=subprocess.PIPE)
     output = subprocess.run(["clingraph", "--json", "--render", "--engine=neato", "--format=pdf", "-q"], stdin=clin_out.stdout)
 
-def vizualize_solution_for_map(map):
+def vizualize_solution_for_map(map, horizon):
     if (os.path.exists("out/to_viz")):
         os.remove("out/to_viz")
     with open('out/to_viz', 'w') as f:        
-        map.vizualize_solution_for_map(f)
+        map.vizualize_solution_for_map(f, horizon)
 
     clin_out = subprocess.Popen(['clingo', 'out/to_viz', 'encodings/viz.lp', '-n', '0', '--outf=2'], stdout=subprocess.PIPE)
     output = subprocess.run(["clingraph", "--json", "--render", "--engine=neato", "--format=pdf", "--gif", "--gif-name=path_animation.gif", "-q", "--select-model=1"], stdin=clin_out.stdout)
@@ -33,7 +33,7 @@ def save_to_file(m, file):
             f.write(f"{atom}.")
 
 def abstract(args, map):
-    ctl = clingo.Control()
+    ctl = clingo.Control(["--heuristic=Domain"])
     ctl.load("encodings/find-cliques.lp")
     map.load_in_clingo(ctl)
     ctl.ground([("base", [])])
@@ -76,12 +76,14 @@ def run(args):
         map = abstract(args, map)
         maps.append(map)
 
-    maps[-1].solve()
-    maps[-2].solve(maps[-1].paths)
-    vizualize_solution_for_map(maps[-2])
+    horizon = 2
 
-    #if(args.vizualize):
-    #    vizualize_maps(*maps)
+    #maps[-1].solve(horizon)
+    #maps[-2].solve(horizon*2, maps[-1].paths)
+    #vizualize_solution_for_map(maps[-2], horizon*2)
+
+    if(args.vizualize):
+        vizualize_maps(*maps)
 
 
 parser = argparse.ArgumentParser()

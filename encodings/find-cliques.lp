@@ -1,19 +1,32 @@
-{in_clique_with(ID, ID') : edge((ID, ID'))} :- node(ID).
 
-in_clique_with(ID', ID) :- in_clique_with(ID, ID'), ID < ID'.
+% Choose cliques
+{clique(ID, ID') : edge((ID, ID'))}.
+{clique(ID, ID', ID'') : edge((ID, ID')),edge((ID, ID''))}.
+{clique(ID, ID', ID'', ID''') : edge((ID, ID')), edge((ID, ID'')), edge((ID, ID'''))}.
 
-:- edge((ID, ID')), not in_clique_with(ID, _), not in_clique_with(ID', _).
+clique(ID', ID) :- clique(ID, ID').
+clique(ID'', ID, ID') :- clique(ID, ID', ID'').
+clique(ID''', ID, ID', ID'') :- clique(ID, ID', ID'', ID''').
 
-:- in_clique_with(ID, ID'), not edge((ID, ID')).
+% clique cannot exist if edge does not exist
+:- clique(ID, ID'), not edge((ID, ID')).
+:- clique(ID, ID', _), not edge((ID, ID')).
+:- clique(ID, ID', _, _), not edge((ID, ID')).
 
-:- in_clique_with(ID, ID1), in_clique_with(ID1, ID2), not in_clique_with(ID2, ID), ID != ID1, ID != ID2, ID1 != ID2.
+% node cannot be in two cliques
+:- in_clique_with(ID, ID'), in_clique_with(ID', ID''), not in_clique_with(ID'', ID), ID != ID', ID != ID'', ID' != ID''.
 
-clique_count_node_is_in(IDENTIFIER, AMOUNT+1) :- AMOUNT = #count{1, ID2 : in_clique_with(IDENTIFIER,ID2)}, node(IDENTIFIER).
+in_clique_with(ID, ID') :- in_clique_with(ID', ID).
 
-:- clique_count_node_is_in(IDENTIFIER, COUNT), COUNT > 4.
+in_clique_with(ID, ID') :- clique(ID, ID').
+in_clique_with(ID, ID') :- clique(ID, ID', _).
+in_clique_with(ID, ID') :- clique(ID, ID', _, _).
 
-loner(ID) :- not in_clique_with(ID, _), node(ID).
+loner(ID) :- not clique(ID, _), not clique(ID, _, _), not clique(ID, _, _, _), node(ID).
 loner_connected_with(ID, ID') :- loner(ID), edge((ID, ID')).
 
-#maximize{2,ID : clique_count_node_is_in(ID, 4)}.
-#maximize{1,ID : clique_count_node_is_in(ID, 3)}.
+% Heuristic for finding best cliques
+#heuristic loner(ID). [4,false]
+#heuristic clique(ID,ID2). [3,false]
+#heuristic clique(ID,ID2,ID3). [2,false]
+#heuristic clique(ID,ID2,ID3,ID4). [1,false]

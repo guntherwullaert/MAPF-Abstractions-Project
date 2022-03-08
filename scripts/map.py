@@ -42,9 +42,9 @@ class AbstractedMap():
 
         ctl.add("base", [], f"robot(ID) :- robot_at(ID, _).")
 
-    def solve(self, paths = {}):
+    def solve(self, horizon, paths = {}):
         ctl = clingo.Control("")
-        ctl.add("base", [], "#const horizon=10.")
+        ctl.add("base", [], f"#const horizon={horizon}.")
         ctl.load("encodings/solve-map.lp")
         self.load_in_clingo(ctl, paths)
         ctl.ground([("base", [])])
@@ -100,8 +100,7 @@ class AbstractedMap():
 
             f.write(f"attr(node, a{self.layer}n{node['id']}s{timestep_append}, label, \"{label}\").")
 
-    def vizualize_solution_for_map(self, f):
-        horizon = len(next(iter(self.paths.values())))
+    def vizualize_solution_for_map(self, f, horizon):
         for step in range(horizon):
             self.vizualize(f, step)
 
@@ -134,7 +133,7 @@ class AbstractedMap():
 
     def on_model_output_to_file(self, m, file):
         for atom in m.symbols(shown=True):
-            file.write(f"{atom}.")
+            file.write(f"{atom}.\n")
 
     def on_model_solution(self, m, file):
         for symbol in m.symbols(shown=True):
@@ -238,8 +237,11 @@ class AbstractedMap():
     def load_abstraction_finished(self):
         cliques = []
         for symbol in self.latest_model:
-            if(str(symbol).startswith("in_clique_with")):
-                cliques.append({str(symbol.arguments[0]), str(symbol.arguments[1])})
+            if(str(symbol).startswith("clique")):
+                clique = []
+                for argument in symbol.arguments:
+                    clique.append(str(argument))
+                cliques.append(set(clique))
 
             if(str(symbol).startswith("loner(")):
                 self.loners.append(str(symbol.arguments[0]))
