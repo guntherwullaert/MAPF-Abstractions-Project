@@ -25,3 +25,8 @@ robot_at(ID, NID, T) :- move(ID,T), move_to(ID, NID, T).
 %% PATH %%
 1 { robot_at(RID, NID, T*2) : node_in_clique(CID, NID)} 1 :- path(RID, CID, T).
 1 { robot_at(RID, NID, T*2+1) : node_in_clique(CID, NID)} 1 :- path(RID, CID, T).
+
+%% CONFLICTS %%
+ :- robot_at(RID, NID, T), robot_at(RID', NID, T), RID < RID'.
+ :- robot_at(RID, NID, T), robot_at(RID, NID', T + 1), robot_at(RID', NID', T), robot_at(RID', NID, T + 1), RID < RID'.
+
