@@ -78,19 +78,34 @@ def run(args):
 
     horizon = 2
 
+    #print("Solving for Map 3")
+    #maps[-1].solve(horizon)
+    #print("Solving for Map 2")
+    #maps[-2].solve(horizon*2+2, maps[-1].paths)
+    #print("Solving for Map 1")
+    #maps[-3].solve(horizon*4+6, maps[-2].paths)
+    #print("Solving for Map 0")
+    #maps[-4].solve(horizon*8+13, maps[-3].paths)
+    #print("Vizualizing")
+    #vizualize_solution_for_map(maps[-4], horizon*8+5)
+
+    #vizualize_solution_for_map(maps[-4], horizon*8+13)
+    #vizualize_solution_for_map(maps[-4], horizon*8+16)
+
     print("Solving for Map 3")
     maps[-1].solve(horizon)
     print("Solving for Map 2")
     maps[-2].solve(horizon*2+1, maps[-1].paths)
     print("Solving for Map 1")
-    maps[-3].solve(horizon*4+2, maps[-2].paths)
+    maps[-3].solve(horizon*4+4, maps[-2].paths)
     print("Solving for Map 0")
-    maps[-4].solve(horizon*8+5, maps[-3].paths)
+    maps[-4].solve(horizon*8+9, maps[-3].paths)
     print("Vizualizing")
-    vizualize_solution_for_map(maps[-4], horizon*8+5)
+    
+    vizualize_solution_for_map(maps[-4], horizon*8+9)
 
-    #if(args.vizualize):
-    #    vizualize_maps(*maps)
+    if(args.vizualize):
+        vizualize_maps(*maps)
 
 
 parser = argparse.ArgumentParser()

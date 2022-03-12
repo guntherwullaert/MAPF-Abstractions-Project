@@ -26,6 +26,8 @@ class AbstractedMap():
             ctl.add("base", [],  f"node({node['id']}).")
         for node_id, coord in self.node_coord.items():
             ctl.add("base", [],  f"coord_of_node({node_id}, {coord[0]}, {coord[1]}).")
+        for node_id, count in self.node_count.items():
+            ctl.add("base", [],  f"count_of_node({node_id}, {count}).")
         for edge in self.edges:
             ctl.add("base", [], f"edge(({edge['id']}, {edge['id2']})).")
             
@@ -46,7 +48,7 @@ class AbstractedMap():
         ctl.add("base", [], f"robot(ID) :- robot_at(ID, _).")
 
     def solve(self, horizon, paths = {}):
-        ctl = clingo.Control("")
+        ctl = clingo.Control(["--heuristic=Domain"])
         ctl.add("base", [], f"#const horizon={horizon}.")
         ctl.load("encodings/solve-map.lp")
         self.load_in_clingo(ctl, paths)
@@ -94,7 +96,7 @@ class AbstractedMap():
             f.write(clique_definition)
 
         for node in self.nodes:
-            label = node['id']
+            label = f"{node['id']}({self.node_count[node['id']]})"
             if node['id'] in robots_connected_to_node.keys():
                 robot_string = ""
                 for r in robots_connected_to_node[node['id']]:
@@ -240,6 +242,14 @@ class AbstractedMap():
                 self.nodes_in_clique[element["clique_id"]].append(node)
             else:
                 self.nodes_in_clique[element["clique_id"]] = [node]
+
+        for clique, nodes in self.nodes_in_clique.items():
+            total_count = 0
+            for node in nodes: 
+                total_count += int(self.node_count[node])
+            abstraction.node_count[clique] = total_count
+
+        print(abstraction.node_count)
 
         return abstraction
 

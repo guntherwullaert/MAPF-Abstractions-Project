@@ -21,10 +21,20 @@ robot_at(ID, NID, T) :- move(ID,T), move_to(ID, NID, T).
 :- #count{ID : robot_at(ID, NID, horizon)} != COUNT, goal(NID, COUNT).
 
 %% PATH %%
-1 { robot_at(RID, NID, T*2) : node_in_clique(CID, NID)} 1 :- path(RID, CID, T).
-1 { robot_at(RID, NID, T*2+1) : node_in_clique(CID, NID)} 1 :- path(RID, CID, T).
+% STRICT VERSION
+%1 { robot_at(RID, NID, T*2) : node_in_clique(CID, NID)} 1 :- path(RID, CID, T).
+%1 { robot_at(RID, NID, T*2+1) : node_in_clique(CID, NID)} 1 :- path(RID, CID, T).
+
+% RELAXED VERSION
+#const allowed_wait_times = 3.
+2 { robot_at(RID, NID, T*2..T*2+1+allowed_wait_times) : node_in_clique(CID, NID)} 2+allowed_wait_times :- path(RID, CID, T).
 
 %% CONFLICTS %%
- :- robot_at(RID, NID, T), robot_at(RID', NID, T), RID < RID'.
- :- robot_at(RID, NID, T), robot_at(RID, NID', T + 1), robot_at(RID', NID', T), robot_at(RID', NID, T + 1), RID < RID'.
+% Vertex Conflict
+:- robot_at(RID, NID, T), robot_at(RID', NID, T), RID < RID', count_of_node(NID, 1).
+:- N = #count{RID : robot_at(RID, NID, T)}, node(NID), step(T), count_of_node(NID, COUNT), N >= COUNT, COUNT > 1.
+% Edge Conflict 
+%:- robot_at(RID, NID, T), robot_at(RID, NID', T + 1), robot_at(RID', NID', T), robot_at(RID', NID, T + 1), RID < RID'.
 
+#heuristic wait(ID, T). [2,false]
+#heuristic move(ID, T). [1,false]
