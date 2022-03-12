@@ -33,8 +33,8 @@ robot_at(ID, NID, T) :- move(ID,T), move_to(ID, NID, T).
 % Vertex Conflict
 :- robot_at(RID, NID, T), robot_at(RID', NID, T), RID < RID', count_of_node(NID, 1).
 :- N = #count{RID : robot_at(RID, NID, T)}, node(NID), step(T), count_of_node(NID, COUNT), N >= COUNT, COUNT > 1.
-% Edge Conflict 
-%:- robot_at(RID, NID, T), robot_at(RID, NID', T + 1), robot_at(RID', NID', T), robot_at(RID', NID, T + 1), RID < RID'.
+% Swapping Conflict 
+:- robot_at(RID, NID, T), robot_at(RID, NID', T + 1), robot_at(RID', NID', T), robot_at(RID', NID, T + 1), RID < RID', count_of_node(NID, 1), count_of_node(NID', 1).
 
 #heuristic wait(ID, T). [2,false]
 #heuristic move(ID, T). [1,false]

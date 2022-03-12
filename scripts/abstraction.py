@@ -95,14 +95,14 @@ def run(args):
     print("Solving for Map 3")
     maps[-1].solve(horizon)
     print("Solving for Map 2")
-    maps[-2].solve(horizon*2+1, maps[-1].paths)
+    maps[-2].solve(horizon*2+2, maps[-1].paths)
     print("Solving for Map 1")
-    maps[-3].solve(horizon*4+4, maps[-2].paths)
+    maps[-3].solve(horizon*4+6, maps[-2].paths)
     print("Solving for Map 0")
-    maps[-4].solve(horizon*8+9, maps[-3].paths)
-    print("Vizualizing")
+    maps[-4].solve(horizon*8+13, maps[-3].paths)
+    #print("Vizualizing")
     
-    vizualize_solution_for_map(maps[-4], horizon*8+9)
+    #vizualize_solution_for_map(maps[-4], horizon*8+9)
 
     if(args.vizualize):
         vizualize_maps(*maps)
