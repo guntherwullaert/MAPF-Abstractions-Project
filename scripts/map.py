@@ -107,7 +107,7 @@ class AbstractedMap():
             f.write(f"attr(node, a{self.layer}n{node_id}s{timestep_append}, pos, \"{coord[0]},{coord[1]}!\").")
 
     def vizualize_solution_for_map(self, f, horizon):
-        for step in range(horizon):
+        for step in range(horizon+1):
             self.vizualize(f, step)
 
     def on_model_load_input(self, m):

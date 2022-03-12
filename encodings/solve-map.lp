@@ -4,9 +4,7 @@ step(1..horizon).
 robot_at(ID, NID, 0) :- robot_at(ID, NID).
 
 %% MOVEMENT %%
-%1 {move(ID, T); wait(ID, T)} 1 :- step(T), robot(ID).
-
-move(ID, T) :- step(T), robot(ID).
+1 {move(ID, T); wait(ID, T)} 1 :- step(T), robot(ID).
 
 1 {move_to(ID, NID', T) : edge((NID, NID'))} 1 :- move(ID, T), robot_at(ID, NID, T-1).
 
@@ -17,7 +15,7 @@ robot_at(ID, NID, T) :- wait(ID,T), robot_at(ID, NID, T-1).
 robot_at(ID, NID, T) :- move(ID,T), move_to(ID, NID, T).
 %:- move(ID,T), robot_at(ID, NID, T), robot_at(ID, NID, T-1).
 
-%:- robot_at(ID, NID, T), robot_at(ID, NID2, T), NID < NID2.
+:- robot_at(ID, NID, T), robot_at(ID, NID2, T), NID < NID2.
 
 %% GOAL %%
 :- #count{ID : robot_at(ID, NID, horizon)} != COUNT, goal(NID, COUNT).

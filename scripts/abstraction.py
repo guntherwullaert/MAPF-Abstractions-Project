@@ -21,7 +21,7 @@ def vizualize_solution_for_map(map, horizon):
         map.vizualize_solution_for_map(f, horizon)
 
     clin_out = subprocess.Popen(['clingo', 'out/to_viz', 'encodings/viz.lp', '-n', '0', '--outf=2'], stdout=subprocess.PIPE)
-    output = subprocess.run(["clingraph", "--json", "--render", "--engine=neato", "--format=pdf", "--gif", "--gif-name=path_animation.gif", "-q", "--select-model=1"], stdin=clin_out.stdout)
+    output = subprocess.run(["clingraph", "--json", "--render", "--engine=neato", "--format=pdf", "--gif", "--gif-name=path_animation.gif", "-q", "--select-model=1", "--gif-param=fps=1"], stdin=clin_out.stdout)
 
 
 def save_to_file(m, file):
@@ -78,12 +78,19 @@ def run(args):
 
     horizon = 2
 
-    #maps[-1].solve(horizon)
-    #maps[-2].solve(horizon*2, maps[-1].paths)
-    #vizualize_solution_for_map(maps[-2], horizon*2)
+    print("Solving for Map 3")
+    maps[-1].solve(horizon)
+    print("Solving for Map 2")
+    maps[-2].solve(horizon*2+1, maps[-1].paths)
+    print("Solving for Map 1")
+    maps[-3].solve(horizon*4+2, maps[-2].paths)
+    print("Solving for Map 0")
+    maps[-4].solve(horizon*8+5, maps[-3].paths)
+    print("Vizualizing")
+    vizualize_solution_for_map(maps[-4], horizon*8+5)
 
-    if(args.vizualize):
-        vizualize_maps(*maps)
+    #if(args.vizualize):
+    #    vizualize_maps(*maps)
 
 
 parser = argparse.ArgumentParser()
