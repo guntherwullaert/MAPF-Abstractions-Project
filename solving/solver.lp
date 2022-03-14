@@ -3,20 +3,25 @@
 %%%%%%%%%%%%%%%%
 
 % Maximum plan length for every agent (upper bound).
-maxsteps(25).
+#const horizon = 25.
 
 % First path segment of each agent is at its start location.
-path(ID, 0, V) :- start((ID, V)).
+path(ID, 0, V) :- start(ID, V).
+
+% Each robot gets assigned one goal
+1{goal(RID,IDN) : goal(IDN)}1 :- robot(RID).
+:- goal(IDN), not goal(_,IDN).
+
 
 % Each next step is either a wait action or a move to an adjacent Vertex.
-0{ path(ID, T + 1, V); path(ID, T + 1, U) : edge((V, U)) }1 :- path(ID, T, V), T < M, maxsteps(M).
+0{ path(ID, T + 1, V); path(ID, T + 1, U) : edge((V, U)) }1 :- path(ID, T, V), T < horizon.
 
 % Each Vertex the path of an agent goes over is marked visited, and the goal has to be visited.
-:- goal((ID, V)), not visit(ID, V).
+:- goal(ID, V), not visit(ID, V).
 visit(ID, V) :- path(ID, T, V).
 
 % Stay at target
-:- goal((ID, V)), path(ID, T, V2), plan_length(ID, MIN), T > MIN, V != V2.
+:- goal(ID, V), path(ID, T, V2), plan_length(ID, MIN), T > MIN, V != V2.
 
 % No steps after all agents have reached their target
 :- makespan(M), path(_,T,_), M<T.
@@ -42,7 +47,7 @@ visit(ID, V) :- path(ID, T, V).
 %%%%%%%%%%%%%%
 
 % Get individual plan lengths
-plan_length(ID, T) :- path(ID, T, V), goal((ID, V)), path(ID,T-1,W), not goal((ID,W)).
+plan_length(ID, T) :- path(ID, T, V), goal(ID, V), path(ID,T-1,W), not goal(ID,W).
 
 % Calculate makespan
 makespan(M) :- M =  #max {T : plan_length(_, T)}.

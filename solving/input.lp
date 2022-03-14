@@ -8,10 +8,10 @@ node(ID) :- node(ID,_,_).
 robot(ID) :- start(ID,_,_).
 
 % Initializing starting positions of each robot
-start((IDR,IDN)) :- start(IDR, X, Y), node(IDN, X, Y).
+start(IDR,IDN) :- start(IDR, X, Y), node(IDN, X, Y).
 
 % Initializing goal positions of each robot (currently shelf id assigns the targets)
-goal((IDG,IDN)) :- goal(IDG, X, Y), node(IDN, X, Y).
+goal(IDN) :- goal(_, X, Y), node(IDN, X, Y).
 
 % Initializing edges
 edge((ID, ID2)) :- node(ID, X, Y), node(ID2, X+1, Y).
@@ -37,5 +37,5 @@ is_crossing((ID4,ID),(ID2,ID3)) :- is_crossing((ID,ID4),(ID2,ID3)).
 #show is_crossing/2.
 #show node/3.
 #show robot/1.
-#show start/1.
+#show start/2.
 #show goal/1.
