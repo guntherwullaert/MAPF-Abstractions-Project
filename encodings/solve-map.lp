@@ -20,6 +20,9 @@ robot_at(ID, NID, T) :- move(ID,T), move_to(ID, NID, T).
 %% GOAL %%
 :- #count{ID : robot_at(ID, NID, horizon)} != COUNT, goal(NID, COUNT).
 
+% Stay at target behaviour
+:- goal(NID, _), robot_at(RID, NID, T), robot_at(RID, NID', T'), T' > T, NID != NID'.
+
 %% PATH %%
 % STRICT VERSION
 %1 { robot_at(RID, NID, T*2) : node_in_clique(CID, NID)} 1 :- path(RID, CID, T).
