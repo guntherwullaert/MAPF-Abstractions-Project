@@ -249,8 +249,6 @@ class AbstractedMap():
                 total_count += int(self.node_count[node])
             abstraction.node_count[clique] = total_count
 
-        print(abstraction.node_count)
-
         return abstraction
 
     def load_abstraction_finished(self):

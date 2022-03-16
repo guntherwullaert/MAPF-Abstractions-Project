@@ -76,7 +76,8 @@ def run(args):
         map = abstract(args, map)
         maps.append(map)
 
-    horizon = 2
+    horizon = args.horizon
+    final_horizon = horizon
 
     #print("Solving for Map 3")
     #maps[-1].solve(horizon)
@@ -92,21 +93,41 @@ def run(args):
     #vizualize_solution_for_map(maps[-4], horizon*8+13)
     #vizualize_solution_for_map(maps[-4], horizon*8+16)
 
-    print("Solving for Map 3")
-    maps[-1].solve(horizon)
-    print("Solving for Map 2")
-    maps[-2].solve(horizon*2+2, maps[-1].paths)
-    print("Solving for Map 1")
-    maps[-3].solve(horizon*4+6, maps[-2].paths)
-    print("Solving for Map 0")
-    maps[-4].solve(horizon*8+13, maps[-3].paths)
+    #print("Solving for Map 3")
+    #maps[-1].solve(horizon)
+    #print("Solving for Map 2")
+    #maps[-2].solve(horizon*2+2, maps[-1].paths)
+    #print("Solving for Map 1")
+    #maps[-3].solve(horizon*4+6, maps[-2].paths)
+    #print("Solving for Map 0")
+    #maps[-4].solve(horizon*8+13, maps[-3].paths)
     #print("Vizualizing")
     
     #vizualize_solution_for_map(maps[-4], horizon*8+9)
 
-    if(args.vizualize):
-        vizualize_maps(*maps)
+    if(args.solving):
+        previous_map = False
+        for map in maps[::-1]:
+            print(f"Solving for map layer {map.layer} with horizon={final_horizon}")
+            if(previous_map == False):
+                map.solve(final_horizon)
+            else:
+                map.solve(final_horizon, previous_map.paths)
+            final_horizon = (final_horizon + 1) * 2
+            previous_map = map
 
+            if map.paths == {}:
+                print("No solution was found!")
+                break
+        
+        if map.paths != {}:
+            print(previous_map.paths)
+
+    if(args.vizualize):
+        if(args.solving):
+            vizualize_solution_for_map(maps[0], final_horizon)
+        else:
+            vizualize_maps(*maps)
 
 parser = argparse.ArgumentParser()
 
@@ -115,6 +136,10 @@ parser.add_argument("-d", "--debug", help="If each map's clingo representation i
 parser.add_argument("-a", "--abstractions", help="How many abstractions should be created", type=int, required=True)
 parser.add_argument("-c", "--cliques", help="If the exact cliques should be printed", action='store_true')
 parser.add_argument("-v", "--vizualize", help="If the graphs should be vizualized", action='store_true')
+parser.add_argument("-b", "--benchmark", help="If the benchmark stats should be output", action='store_true')
+parser.add_argument("-s", "--solving", help="If the solving should be run after abstraction requires horizon and wait to be set", action='store_true')
+parser.add_argument("-w", "--wait", help="How often the plan can be shifted", type=int)
+parser.add_argument("-o", "--horizon", help="How long the smallest plan can be for the most abstracted layer", type=int)
 
 args = parser.parse_args()
 
