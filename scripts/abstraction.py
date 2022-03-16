@@ -1,5 +1,5 @@
 import string
-import clingo, os, subprocess, argparse
+import clingo, os, subprocess, argparse, time
 
 from numpy import full
 from map import AbstractedMap
@@ -54,7 +54,12 @@ def abstract(args, map):
     return abstraction
 
 def run(args):
+    performance_start_time = time.perf_counter_ns()
+    start_time = time.process_time_ns()
+
     full_map = AbstractedMap()
+
+    start_input_translation_time = time.process_time_ns()
 
     # Load instance and translate input
     ctl = clingo.Control()
@@ -69,12 +74,28 @@ def run(args):
         ctl.ground([("base", [])])
         ctl.solve(on_model= lambda m: save_to_file(m, f"out/map_{full_map.layer}.lp"))
 
+    if(args.benchmark):
+        end_input_translation_time = time.process_time_ns()
+        print(f"Input Translation: {end_input_translation_time - start_input_translation_time}ns")
+
+
     # Find cliques in the first abstraction graph
+    total_abstractions_time = 0
     map = full_map
     maps = [full_map]
     for i in range(args.abstractions):
+        start_layer_time = time.process_time_ns()
+
         map = abstract(args, map)
         maps.append(map)
+
+        if(args.benchmark):
+            end_layer_time = time.process_time_ns()
+            total_abstractions_time += end_layer_time - start_layer_time
+            print(f"Abstracting layer {map.layer}: {end_layer_time - start_layer_time}ns")
+
+    if(args.benchmark):
+        print(f"Total Time needed for Abstracting: {total_abstractions_time}ns")
 
     horizon = args.horizon
     final_horizon = horizon
@@ -106,28 +127,46 @@ def run(args):
     #vizualize_solution_for_map(maps[-4], horizon*8+9)
 
     if(args.solving):
+        total_solving_time = 0
         previous_map = False
         for map in maps[::-1]:
             print(f"Solving for map layer {map.layer} with horizon={final_horizon}")
+            start_solving_time = time.process_time_ns()
+
             if(previous_map == False):
-                map.solve(final_horizon)
+                map.solve(final_horizon, args.wait)
             else:
-                map.solve(final_horizon, previous_map.paths)
+                map.solve(final_horizon, args.wait, previous_map.paths)
             final_horizon = (final_horizon + 1) * 2
             previous_map = map
 
             if map.paths == {}:
                 print("No solution was found!")
                 break
-        
+            
+            if(args.benchmark):
+                end_solving_time = time.process_time_ns()
+                total_solving_time += end_solving_time - start_solving_time
+                print(f"Solving time for map layer {map.layer} with horizon={final_horizon}: {end_solving_time - start_solving_time}ns")
+
         if map.paths != {}:
             print(previous_map.paths)
+
+        if(args.benchmark):
+                print(f"Total Solving Time: {total_solving_time}ns")
 
     if(args.vizualize):
         if(args.solving):
             vizualize_solution_for_map(maps[0], final_horizon)
         else:
             vizualize_maps(*maps)
+
+    if(args.benchmark):
+        performance_end_time = time.perf_counter_ns()
+        end_time = time.process_time_ns()
+
+        print(f"Total Real World Time Elapsed: {performance_end_time - performance_start_time}ns")
+        print(f"Total Processing Time Elapsed: {end_time - start_time}ns")
 
 parser = argparse.ArgumentParser()
 

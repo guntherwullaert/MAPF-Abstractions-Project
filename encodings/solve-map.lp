@@ -29,7 +29,6 @@ robot_at(ID, NID, T) :- move(ID,T), move_to(ID, NID, T).
 %1 { robot_at(RID, NID, T*2+1) : node_in_clique(CID, NID)} 1 :- path(RID, CID, T).
 
 % RELAXED VERSION
-#const allowed_wait_times = 3.
 2 { robot_at(RID, NID, T*2..T*2+1+allowed_wait_times) : node_in_clique(CID, NID)} 2+allowed_wait_times :- path(RID, CID, T).
 
 %% CONFLICTS %%

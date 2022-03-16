@@ -47,9 +47,10 @@ class AbstractedMap():
 
         ctl.add("base", [], f"robot(ID) :- robot_at(ID, _).")
 
-    def solve(self, horizon, paths = {}):
+    def solve(self, horizon, wait, paths = {}):
         ctl = clingo.Control(["--heuristic=Domain"])
         ctl.add("base", [], f"#const horizon={horizon}.")
+        ctl.add("base", [], f"#const allowed_wait_times = {wait}.")
         ctl.load("encodings/solve-map.lp")
         self.load_in_clingo(ctl, paths)
         ctl.ground([("base", [])])
