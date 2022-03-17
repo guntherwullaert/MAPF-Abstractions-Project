@@ -5,7 +5,9 @@
 
 node(ID,X,Y) :- init(object(node,ID),value(at,(X,Y))).
 
+finished(T, NID, ID) :- robot_at(ID, NID, T), goal(NID, _).
+fake(T, NID):- finished(T, NID, ID), robot_at(ID2,NID2, T), ID != ID2, not goal(NID2,_).
 
-occurs(object(robot, RID), action(move, (X2-X, Y2-Y)), T) :- robot_at(RID, NID, T), node(NID, X, Y), robot_at(RID, NID', T + 1) , node(NID', X2, Y2).
+occurs(object(robot, RID), action(move, (X2-X, Y2-Y)), T) :- robot_at(RID, NID, T), node(NID, X, Y), robot_at(RID, NID', T + 1) , node(NID', X2, Y2), T <= M, finished(M, FID, _), not fake(M, FID).
 #show.
 #show occurs/3.

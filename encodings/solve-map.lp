@@ -21,7 +21,10 @@ robot_at(ID, NID, T) :- move(ID,T), move_to(ID, NID, T).
 :- #count{ID : robot_at(ID, NID, horizon)} != COUNT, goal(NID, COUNT).
 
 % Stay at target behaviour
-:- goal(NID, _), robot_at(RID, NID, T), robot_at(RID, NID', T'), T' > T, NID != NID'.
+%:- goal(NID, _), robot_at(RID, NID, T), robot_at(RID, NID', T'), T' > T, NID != NID'.
+%:- goal(NID, _), robot_at(RID, NID, T), robot_at(RID, NID'', horizon), robot_at(RID, NID', T'),T' > T, NID != NID''.
+%:- robot_at(RID,NID,T), goal(NID,_), robot_at(RID, NID', T'),T' > T, NID != NID', robot_at(RID2,NID2,T), goal(NID2,_), RID2 != RID.
+
 
 %% PATH %%
 % STRICT VERSION
