@@ -4,6 +4,26 @@ import clingo, os, subprocess, argparse, time
 from numpy import full
 from map import AbstractedMap
 
+from csv import writer
+
+class BenchmarkInfo:
+    def __init__(self):
+        self.instance = ""
+        self.input_translation = ""
+        self.abstractions = ""
+        self.abstraction_times = []
+        self.total_abstraction = ""
+        self.horizon = ""
+        self.wait = ""
+        self.solving_times = []
+        self.total_solving = ""
+        self.solving_successfull = ""
+        self.total_processing = ""
+        self.total_real_world = ""
+
+    def row(self):
+        return [self.instance, self.input_translation, self.abstractions, self.abstraction_times, self.total_abstraction, self.horizon, self.wait, self.solving_times, self.total_solving, self.solving_successfull, self.total_processing, self.total_real_world]
+
 def vizualize_maps(*maps):
     if (os.path.exists("out/to_viz")):
         os.remove("out/to_viz")
@@ -54,10 +74,13 @@ def abstract(args, map):
     return abstraction
 
 def run(args):
+    binfo = BenchmarkInfo()
     performance_start_time = time.perf_counter_ns()
     start_time = time.process_time_ns()
 
     full_map = AbstractedMap()
+
+    binfo.instance = args.instance
 
     start_input_translation_time = time.process_time_ns()
 
@@ -76,10 +99,10 @@ def run(args):
 
     if(args.benchmark):
         end_input_translation_time = time.process_time_ns()
-        print(f"Input Translation: {end_input_translation_time - start_input_translation_time}ns")
-
+        binfo.input_translation = end_input_translation_time - start_input_translation_time
 
     # Find cliques in the first abstraction graph
+    binfo.abstractions = args.abstractions
     total_abstractions_time = 0
     map = full_map
     maps = [full_map]
@@ -92,10 +115,10 @@ def run(args):
         if(args.benchmark):
             end_layer_time = time.process_time_ns()
             total_abstractions_time += end_layer_time - start_layer_time
-            print(f"Abstracting layer {map.layer}: {end_layer_time - start_layer_time}ns")
+            binfo.abstraction_times.append(end_layer_time - start_layer_time)
 
     if(args.benchmark):
-        print(f"Total Time needed for Abstracting: {total_abstractions_time}ns")
+        binfo.total_abstraction = total_abstractions_time
 
     horizon = args.horizon
     final_horizon = horizon
@@ -128,6 +151,8 @@ def run(args):
 
     if(args.solving):
         total_solving_time = 0
+        binfo.horizon = final_horizon
+        binfo.wait = args.wait
         previous_map = False
         for map in maps[::-1]:
             print(f"Solving for map layer {map.layer} with horizon={final_horizon}")
@@ -142,18 +167,20 @@ def run(args):
 
             if map.paths == {}:
                 print("No solution was found!")
+                binfo.solving_successfull = map.layer
                 break
             
             if(args.benchmark):
                 end_solving_time = time.process_time_ns()
                 total_solving_time += end_solving_time - start_solving_time
-                print(f"Solving time for map layer {map.layer} with horizon={final_horizon}: {end_solving_time - start_solving_time}ns")
+                binfo.solving_times.append(end_solving_time - start_solving_time)
 
         if map.paths != {}:
+            binfo.solving_successfull = -1
             print(previous_map.paths)
 
         if(args.benchmark):
-                print(f"Total Solving Time: {total_solving_time}ns")
+                binfo.total_solving = total_solving_time
 
     if(args.vizualize):
         if(args.solving):
@@ -165,8 +192,16 @@ def run(args):
         performance_end_time = time.perf_counter_ns()
         end_time = time.process_time_ns()
 
-        print(f"Total Real World Time Elapsed: {performance_end_time - performance_start_time}ns")
-        print(f"Total Processing Time Elapsed: {end_time - start_time}ns")
+        binfo.total_real_world = performance_end_time - performance_start_time
+        binfo.total_processing = end_time - start_time
+
+        if(args.file != ""):
+            with open(args.file, 'a') as f:
+                writer_object = writer(f)
+            
+                writer_object.writerow(binfo.row())
+            
+                f.close()
 
 parser = argparse.ArgumentParser()
 
@@ -176,6 +211,7 @@ parser.add_argument("-a", "--abstractions", help="How many abstractions should b
 parser.add_argument("-c", "--cliques", help="If the exact cliques should be printed", action='store_true')
 parser.add_argument("-v", "--vizualize", help="If the graphs should be vizualized", action='store_true')
 parser.add_argument("-b", "--benchmark", help="If the benchmark stats should be output", action='store_true')
+parser.add_argument("-f", "--file", help="Where the output should be saved from the benchmark", default="")
 parser.add_argument("-s", "--solving", help="If the solving should be run after abstraction requires horizon and wait to be set", action='store_true')
 parser.add_argument("-w", "--wait", help="How often the plan can be shifted", type=int)
 parser.add_argument("-o", "--horizon", help="How long the smallest plan can be for the most abstracted layer", type=int)

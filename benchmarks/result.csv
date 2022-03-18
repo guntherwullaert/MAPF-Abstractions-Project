@@ -1,0 +1,3 @@
+instance, input_translation, abstractions, abstraction_times, total_abstraction, horizon, wait, solving_times, total_solving, solving_unsuccessfull, total_processing, total_real_world
+.\instances\corridor_instance.lp,15625000,3,"[187500000, 15625000, 15625000]",218750000,2,3,"[0, 31250000, 93750000, 1171875000]",1296875000,-1,1531250000,1525176400
+
